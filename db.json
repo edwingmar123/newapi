@@ -7,7 +7,7 @@
       "correo": "c.perez@empresa.com",
       "identificacion": "V-12345678",
       "ocupacion": "Gerente de Proyectos",
-      "img": ""
+      "img": "https://r-charts.com/es/miscelanea/procesamiento-imagenes-magick_files/figure-html/color-fondo-imagen-r.png"
     },
     {
       "id": "EMP002",
@@ -16,7 +16,7 @@
       "correo": "m.gonzalez@empresa.com",
       "identificacion": "V-87654321",
       "ocupacion": "Desarrolladora Frontend",
-      "img": ""
+      "img": "https://www.shutterstock.com/image-illustration/david-street-style-graphic-designtextile-600nw-2265632523.jpg"
     },
     {
       "id": "EMP003",
@@ -25,7 +25,7 @@
       "correo": "j.rodriguez@empresa.com",
       "identificacion": "V-23456789",
       "ocupacion": "Analista de Datos",
-      "img": ""
+      "img": "https://i.pinimg.com/236x/d0/06/51/d0065164280b22a286f2e38d5ad2eb0d.jpg"
     },
     {
       "id": "EMP004",
@@ -34,7 +34,7 @@
       "correo": "a.lopez@empresa.com",
       "identificacion": "V-34567890",
       "ocupacion": "Diseñadora UX/UI",
-      "img": ""
+      "img": "https://neliosoftware.com/es/wp-content/uploads/sites/3/2018/07/aziz-acharki-549137-unsplash-1200x775.jpg"
     },
     {
       "id": "EMP005",
@@ -43,7 +43,7 @@
       "correo": "l.martinez@empresa.com",
       "identificacion": "V-45678901",
       "ocupacion": "Ingeniero de Sistemas",
-      "img": ""
+      "img": "https://blog.publica.la/hubfs/futuristic-robot-hummingbird.jpg"
     },
     {
       "id": "EMP006",
@@ -61,7 +61,7 @@
       "correo": "p.garcia@empresa.com",
       "identificacion": "V-67890123",
       "ocupacion": "Contador",
-      "img": ""
+      "img": "https://imagenes.eltiempo.com/files/image_1200_535/uploads/2018/03/22/5ab428c6cda71.jpeg"
     },
     {
       "id": "EMP008",
@@ -70,7 +70,7 @@
       "correo": "i.torres@empresa.com",
       "identificacion": "V-78901234",
       "ocupacion": "Marketing Digital",
-      "img": ""
+      "img": "https://imagenes.eltiempo.com/files/image_1200_535/uploads/2018/03/22/5ab428c6cda71.jpeg"
     }
   ]
 }
