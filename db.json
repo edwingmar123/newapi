@@ -1,15 +1,76 @@
 {
-    "pesonal": [
-      {
-        "nombre": "carlos",
-        "apellido": "peres",
-        "img": ""
-      },
-      {
-        "nombre": "carlos",
-        "apellido": "peres",
-        "img": ""
-      }
-    ]
-  }
-  
+  "personal": [
+    {
+      "id": "EMP001",
+      "nombre": "Carlos",
+      "apellido": "Pérez",
+      "correo": "c.perez@empresa.com",
+      "identificacion": "V-12345678",
+      "ocupacion": "Gerente de Proyectos",
+      "img": ""
+    },
+    {
+      "id": "EMP002",
+      "nombre": "María",
+      "apellido": "González",
+      "correo": "m.gonzalez@empresa.com",
+      "identificacion": "V-87654321",
+      "ocupacion": "Desarrolladora Frontend",
+      "img": ""
+    },
+    {
+      "id": "EMP003",
+      "nombre": "Juan",
+      "apellido": "Rodríguez",
+      "correo": "j.rodriguez@empresa.com",
+      "identificacion": "V-23456789",
+      "ocupacion": "Analista de Datos",
+      "img": ""
+    },
+    {
+      "id": "EMP004",
+      "nombre": "Ana",
+      "apellido": "López",
+      "correo": "a.lopez@empresa.com",
+      "identificacion": "V-34567890",
+      "ocupacion": "Diseñadora UX/UI",
+      "img": ""
+    },
+    {
+      "id": "EMP005",
+      "nombre": "Luis",
+      "apellido": "Martínez",
+      "correo": "l.martinez@empresa.com",
+      "identificacion": "V-45678901",
+      "ocupacion": "Ingeniero de Sistemas",
+      "img": ""
+    },
+    {
+      "id": "EMP006",
+      "nombre": "Sofía",
+      "apellido": "Hernández",
+      "correo": "s.hernandez@empresa.com",
+      "identificacion": "V-56789012",
+      "ocupacion": "Recursos Humanos",
+      "img": ""
+    },
+    {
+      "id": "EMP007",
+      "nombre": "Pedro",
+      "apellido": "García",
+      "correo": "p.garcia@empresa.com",
+      "identificacion": "V-67890123",
+      "ocupacion": "Contador",
+      "img": ""
+    },
+    {
+      "id": "EMP008",
+      "nombre": "Isabel",
+      "apellido": "Torres",
+      "correo": "i.torres@empresa.com",
+      "identificacion": "V-78901234",
+      "ocupacion": "Marketing Digital",
+      "img": ""
+    }
+  ]
+}
