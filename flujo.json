@@ -1,0 +1,622 @@
+{
+  "name": "My workflow 3 MODIFICADO (Nuevo Diseño v2 - Corregido HTTP Voz)",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $node[\"Set (Guardar Solicitud y chatID)\"].json.solicitudOriginal }}",
+        "options": {
+          "systemMessage": "Eres un asistente de IA llamado LuxBot. Tu tarea es interactuar con el usuario y determinar si está autorizado para ver información del personal y qué información específica desea, o si solo es una conversación general.\n\nPROCESO PARA INFORMACIÓN DE PERSONAL:\n\n1.  **CAPTURA DE SOLICITUD Y NOMBRE:**\n    - El usuario te enviará un mensaje. Este es `solicitudOriginal`.\n    - Si la `solicitudOriginal` parece ser sobre información del personal Y NO CONOCES el nombre del solicitante de esta sesión (la memoria de la conversación te dirá si ya te dio un nombre):\n        - Responde ÚNICAMENTE con la frase: \"PREGUNTAR_NOMBRE\"\n    - Si la `solicitudOriginal` es una respuesta a tu pregunta por el nombre (ej. el usuario solo dice \"Edwing\", \"Soy Edwing\", \"Mi nombre es Carlos\"):\n        - Extrae el nombre proporcionado.\n        - Si el nombre es \"Edwing\" (exacto, insensible a mayúsculas/minúsculas en tu verificación si quieres):\n            - Responde ÚNICAMENTE con \"USUARIO_AUTORIZADO:[AQUI_DEBE_IR_LA_SOLICITUD_ORIGINAL_QUE_MOTIVO_LA_PREGUNTA_DEL_NOMBRE]\"\n        - Si el nombre NO es \"Edwing\":\n            - Responde ÚNICAMENTE con \"USUARIO_NO_AUTORIZADO:[AQUI_DEBE_IR_LA_SOLICITUD_ORIGINAL_QUE_MOTIVO_LA_PREGUNTA_DEL_NOMBRE]:[nombreProporcionado]\"\n    - Si la `solicitudOriginal` es sobre información del personal Y YA CONOCES que el solicitante es \"Edwing\" (porque ya se identificó en esta sesión):\n        - Responde ÚNICAMENTE con \"USUARIO_AUTORIZADO:[solicitudOriginal]\"\n    - Si la `solicitudOriginal` NO parece ser sobre información del personal:\n        - Responde de forma conversacional normal. No uses las frases clave.\n\nNOTA PARA EL AGENTE: Recuperar la [AQUI_DEBE_IR_LA_SOLICITUD_ORIGINAL_QUE_MOTIVO_LA_PREGUNTA_DEL_NOMBRE] de la memoria de la conversación es crucial cuando el usuario responde con su nombre. Si no puedes recuperarla, indica un problema. Tu principal salida deben ser las frases clave (\"PREGUNTAR_NOMBRE\", \"USUARIO_AUTORIZADO:SOLICITUD\", \"USUARIO_NO_AUTORIZADO:SOLICITUD:NOMBRE\") cuando aplique el proceso de personal."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [220, 220],
+      "id": "8a9d1126-def0-4fa9-802c-8ecccf88b970",
+      "name": "AI Agent (Logica Principal)"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [40, 400],
+      "id": "852cdf6e-7018-4928-987d-b9bf05ea19f1",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "TsDe0OiZ7190o3X9",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $node[\"Set (Guardar Solicitud y chatID)\"].json.chatId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [220, 400],
+      "id": "1e5701ea-5011-450a-b674-2d98b239e961",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "const formatPeople=(e)=>{if(!e||0===e.length){console.log(\"formatPeople: No hay datos de personas para formatear o el array está vacío.\");return\"No se encontraron resultados en los datos proporcionados.\"}const o=e.map(e=>`• ${e.nombre||\"Nombre no disponible\"} ${e.apellido||\"\"} (${e.id||\"ID no disponible\"})\\n  Puesto: ${e.ocupacion||\"Puesto no disponible\"}`).join(\"\\n\\n\");console.log(\"formatPeople: Cadena formateada (longitud):\",o.length);return o};async function main(){console.log(\"Code Tool (Procesador): Ejecución de main() iniciada.\");let e=\"\";try{const o=$input.all()[0];if(!o||!o.json)return console.warn(\"Code Tool (Procesador): Input JSON no encontrado.\"),{output:\"⚠️ Error en Code Tool: No se recibieron datos para procesar.\"};const t=o.json.apiData;if(e=o.json.searchQuery,void 0===t)return console.error(\"Code Tool (Procesador): 'apiData' no encontrada en el input del Code Tool.\"),{output:\"⚠️ Error en Code Tool: No se recibieron los datos del personal desde el paso anterior (apiData).\"};void 0===e&&(console.warn(\"Code Tool (Procesador): 'searchQuery' no encontrada en el input. Se intentará listar todo el personal.\"),e=\"todo el personal\");const l=(e||\"\").trim().toLowerCase();console.log(`Code Tool (Procesador): Query recibida: \"${e}\", Query procesada: \"${l}\"`),console.log(\"Code Tool (Procesador): Datos de personal recibidos. Es array:\",Array.isArray(t),\"Longitud:\",Array.isArray(t)?t.length:\"N/A\");if(!Array.isArray(t))return console.error(\"Code Tool (Procesador): Los datos de 'apiData' no son un array:\",JSON.stringify(t)),{output:\"⚠️ Error en Code Tool: El formato de los datos del personal es incorrecto (no es un array).\"};if(0===t.length)return console.warn(\"Code Tool (Procesador): 'apiData' es un array vacío.\"),{output:\"La base de datos de personal está actualmente vacía (según los datos recibidos).\"};let n=[],a=\"\";const r=[\"todo el personal\",\"todos\",\"lista completa\",\"dame los nombre de todo el personal\",\"dame los nombres de todo el personal\",\"nombres de todo el personal\",\"muestrame todo el personal\",\"listame todo el personal\",\"lista de personal\",\"quienes son todos\",\"ver todos\",\"todo\"];let s=r.some(e=>l.includes(e));if(\"\"===l||\"personal\"===l||\"nombres\"===l||\"empleados\"===l||\"lista\"===l)s=!0;console.log(`Code Tool (Procesador): 'wantsAll': ${s}`);if(s)n=t,a=`Aquí está la lista completa del personal (${n.length} miembros):\\n\\n${formatPeople(n)}`;else{n=t.filter(e=>{const o=`${e.nombre||\"\"} ${e.apellido||\"\"} ${e.id||\"\"} ${e.ocupacion||\"\"}`.toLowerCase();return o.includes(l)});if(n.length>0)a=`Resultados para tu consulta \"${e}\" (${n.length} encontrados):\\n\\n${formatPeople(n)}`;else a=`No se encontraron resultados para tu consulta: \"${e}\".`}console.log(\"Code Tool (Procesador): Texto de salida final (primeros 200 chars):\",a.substring(0,200));return{output:a}}catch(o){console.error(\"Code Tool (Procesador): Error CRÍTICO en main:\",o.message,o.stack);return{output:`⚠️ La herramienta 'Code Tool' (procesador) encontró un error: \"${o.message}\".`}}}const result=await main();return\"string\"==typeof result?{output:result}:result;"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.2,
+      "position": [1220, 220],
+      "id": "70ee8ec2-e040-471e-ae28-eebd3bb6aaf0",
+      "name": "Code Tool (Procesar Datos)"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [40, 220],
+      "id": "d48e43f7-7e4d-4391-95e6-5ac7819dac2d",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "JIVidP4cjarzOc5c",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "mado796@gmail.com",
+        "subject": "Solicitud de Información del Personal por Usuario No Autorizado",
+        "emailType": "text",
+        "message": "={{ $node[\"Set (Extraer_Datos_No_Autorizado)\"].json.cuerpoCorreo }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [620, 600],
+      "id": "ea20455f-1e68-4c94-b01f-c82cb4706f24",
+      "name": "Gmail (Alerta Admin)",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "lIOofyk6WNVnpvCR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [-340, 60],
+      "id": "9dfd399a-bad8-42eb-a240-b1036b703669",
+      "name": "Telegram Trigger",
+      "webhookId": "f2b3b4c2-f76a-4ed6-a9d6-a7dda20c98c0",
+      "credentials": {
+        "telegramApi": {
+          "id": "ETNWvBb9NbC53feh",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "21db5823-1cfb-490d-aa84-6d4ae3af66ff"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "14cc9660-04ef-416f-9e4d-c8c361b05c2f",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [-160, 60],
+      "id": "8ade52be-f249-4583-8b1c-6292632e1f8a",
+      "name": "Switch (Tipo Mensaje)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c78a95a6-2aba-4af2-a547-fa18e81a6f95",
+              "name": "solicitudOriginal",
+              "value": "={{ $node[\"Telegram Trigger\"].json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "NUEVO_ID_CHATID_IN_SET",
+              "name": "chatId",
+              "value": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "keepOnlySet": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [20, 60],
+      "id": "ec7dbb01-2dcc-4caa-b2b9-65621cd47c2c",
+      "name": "Set (Guardar Solicitud y chatID)"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.messege.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [-220, 400],
+      "id": "6464a96a-fd7c-48b1-b13d-6ca4f50b29c9",
+      "name": "Telegram (Voz Get)",
+      "webhookId": "44a8bb5e-cc14-4b34-99b6-fc58797a4189",
+      "credentials": {
+        "telegramApi": {
+          "id": "FauM247SIhUo24Sn",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer TU_API_KEY_OPENAI" },
+            { "name": "Content-Type", "value": "multipart/form-data" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-60, 400],
+      "id": "a5d0f27d-c841-495c-b9d2-240b47511b64",
+      "name": "HTTP Request (Voz)"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Set (Guardar Solicitud y chatID)\"].json.chatId }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1460, 220],
+      "id": "934d2fb9-6294-440e-b907-e2248d174a76",
+      "name": "Telegram1 (Enviar Respuesta Final)"
+    },
+    {
+      "parameters": {
+        "conditions": [
+          {
+            "value1": "={{ $node[\"AI Agent (Logica Principal)\"].json.output }}",
+            "operation": "contains",
+            "value2": "PREGUNTAR_NOMBRE"
+          },
+          {
+            "value1": "={{ $node[\"AI Agent (Logica Principal)\"].json.output }}",
+            "operation": "contains",
+            "value2": "USUARIO_NO_AUTORIZADO"
+          }
+        ],
+        "combinator": "OR",
+        "options": {}
+      },
+      "id": "NUEVO_IF_Evaluar_Agente_ID",
+      "name": "IF (Evaluar Respuesta Agente)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [420, 220]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Set (Guardar Solicitud y chatID)\"].json.chatId }}",
+        "text": "¿Podrías indicarme tu nombre para verificar los permisos, por favor?",
+        "additionalFields": {}
+      },
+      "id": "NUEVO_Telegram_Preguntar_Nombre_ID",
+      "name": "Telegram (Enviar Pregunta Nombre)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [620, 100],
+      "credentials": {
+        "telegramApi": {
+          "id": "Ev74qWOaF2lGITUa",
+          "name": "Telegram account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "NUEVO_ID_AS1_NO_AUT",
+              "name": "solicitudOriginalGuardada",
+              "value": "={{ $node[\"AI Agent (Logica Principal)\"].json.output.split(':')[1] || $node[\"Set (Guardar Solicitud y chatID)\"].json.solicitudOriginal }}",
+              "type": "string"
+            },
+            {
+              "id": "NUEVO_ID_AS2_NO_AUT",
+              "name": "nombreProporcionado",
+              "value": "={{ $node[\"AI Agent (Logica Principal)\"].json.output.split(':')[2] || 'Desconocido' }}",
+              "type": "string"
+            },
+            {
+              "id": "NUEVO_ID_AS3_NO_AUT",
+              "name": "cuerpoCorreo",
+              "value": "Se ha recibido una solicitud de información del personal. El solicitante, que se identificó como '{{ $json.nombreProporcionado }}', no cuenta con autorización para acceder a estos datos. La solicitud original fue: '{{ $json.solicitudOriginalGuardada }}'. Se requiere revisión por parte de la administración.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "NUEVO_Set_Extraer_No_Autorizado_ID",
+      "name": "Set (Extraer_Datos_No_Autorizado)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [620, 480]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Set (Guardar Solicitud y chatID)\"].json.chatId }}",
+        "text": "He enviado un correo a la administración de la Academia Lux solicitando la gestión de tu pedido. Ellos se pondrán en contacto si es necesario. Si necesitas algo más mientras tanto, no dudes en decírmelo.",
+        "additionalFields": {}
+      },
+      "id": "NUEVO_Telegram_Msg_No_Autorizado_ID",
+      "name": "Telegram (Msg No Autorizado)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [820, 600],
+      "credentials": {
+        "telegramApi": {
+          "id": "Ev74qWOaF2lGITUa",
+          "name": "Telegram account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "NUEVO_ID_AS_SOL_AUT_SET",
+              "name": "solicitudParaHerramienta",
+              "value": "={{ ($node[\"AI Agent (Logica Principal)\"].json.output.split(':')[1] || $node[\"Set (Guardar Solicitud y chatID)\"].json.solicitudOriginal).trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "NUEVO_Set_Extraer_Solicitud_Autorizado_ID",
+      "name": "Set (Extraer Solicitud Autorizado)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [620, 320]
+    },
+    {
+      "parameters": {
+        "url": "https://newapi-kkuo.onrender.com/personal",
+        "options": {
+          "retryOnFail": true,
+          "retryCount": 3,
+          "retryInterval": 3000
+        },
+        "method": "GET"
+      },
+      "id": "NUEVO_HTTP_Request_API_Personal_ID",
+      "name": "HTTP Request (Llamar API Personal)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [820, 320]
+    },
+    {
+      "parameters": {
+        "conditions": [
+          {
+            "value1": "={{ $node[\"NUEVO_HTTP_Request_API_Personal_ID\"].response.statusCode }}",
+            "operation": "equal",
+            "value2": 200
+          }
+        ],
+        "combinator": "AND",
+        "options": {}
+      },
+      "id": "NUEVO_IF_API_OK_ID",
+      "name": "IF (Respuesta API OK?)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1020, 320]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "NUEVO_ID_AS_ERR_API_SET",
+              "name": "output",
+              "value": "No pude recuperar la información de la base de datos del personal en este momento (la API externa falló con código: {{ $node[\"NUEVO_HTTP_Request_API_Personal_ID\"].response.statusCode }}). Por favor, intenta más tarde.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "NUEVO_Set_Msg_Error_API_ID",
+      "name": "Set (Msg Error API)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1220, 420]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "NUEVO_ID_AS_API_DATA_SET",
+              "name": "apiData",
+              "value": "={{ $node[\"NUEVO_HTTP_Request_API_Personal_ID\"].json }}",
+              "type": "json"
+            },
+            {
+              "id": "NUEVO_ID_AS_SEARCH_Q_SET",
+              "name": "searchQuery",
+              "value": "={{ $node[\"Set (Extraer Solicitud Autorizado)\"].json.solicitudParaHerramienta }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "NUEVO_Set_Preparar_Input_CodeTool_ID",
+      "name": "Set (Preparar Input CodeTool)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1020, 220]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [{ "node": "Switch (Tipo Mensaje)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Switch (Tipo Mensaje)": {
+      "main": [
+        [
+          {
+            "node": "Set (Guardar Solicitud y chatID)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [{ "node": "Telegram (Voz Get)", "type": "main", "index": 1 }]
+      ]
+    },
+    "Set (Guardar Solicitud y chatID)": {
+      "main": [
+        [{ "node": "AI Agent (Logica Principal)", "type": "main", "index": 0 }]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent (Logica Principal)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent (Logica Principal)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent (Logica Principal)": {
+      "main": [
+        [
+          {
+            "node": "IF (Evaluar Respuesta Agente)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF (Evaluar Respuesta Agente)": {
+      "main": [
+        [
+          {
+            "node": "Telegram (Enviar Pregunta Nombre)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set (Extraer_Datos_No_Autorizado)",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Set (Extraer Solicitud Autorizado)",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Set (Extraer_Datos_No_Autorizado)": {
+      "main": [[{ "node": "Gmail (Alerta Admin)", "type": "main", "index": 0 }]]
+    },
+    "Gmail (Alerta Admin)": {
+      "main": [
+        [{ "node": "Telegram (Msg No Autorizado)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Set (Extraer Solicitud Autorizado)": {
+      "main": [
+        [
+          {
+            "node": "NUEVO_HTTP_Request_API_Personal_ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NUEVO_HTTP_Request_API_Personal_ID": {
+      "main": [[{ "node": "NUEVO_IF_API_OK_ID", "type": "main", "index": 0 }]]
+    },
+    "NUEVO_IF_API_OK_ID": {
+      "main": [
+        [
+          {
+            "node": "NUEVO_Set_Preparar_Input_CodeTool_ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [{ "node": "NUEVO_Set_Msg_Error_API_ID", "type": "main", "index": 1 }]
+      ]
+    },
+    "NUEVO_Set_Preparar_Input_CodeTool_ID": {
+      "main": [
+        [{ "node": "Code Tool (Procesar Datos)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Code Tool (Procesar Datos)": {
+      "main": [
+        [
+          {
+            "node": "Telegram1 (Enviar Respuesta Final)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NUEVO_Set_Msg_Error_API_ID": {
+      "main": [
+        [
+          {
+            "node": "Telegram1 (Enviar Respuesta Final)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent (Logica Principal)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram (Voz Get)": {
+      "main": [[{ "node": "HTTP Request (Voz)", "type": "main", "index": 0 }]]
+    },
+    "HTTP Request (Voz)": {
+      "main": [
+        [{ "node": "AI Agent (Logica Principal)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "JSON_NUEVO_DISEÑO_V2_CORREGIDO_HTTP_VOZ",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6a007017650f72b12d9b55a346ef0b19477e94286ffd960cba7008c6ca27da42"
+  },
+  "id": "jFJloEhm1F3ScUik",
+  "tags": []
+}

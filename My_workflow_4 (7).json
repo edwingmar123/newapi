@@ -1,0 +1,521 @@
+{
+  "name": "My workflow 4",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        11140,
+        1340
+      ],
+      "id": "495bf49f-006d-4a0e-973d-27d4da1158b6",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "d8a36c09-92ca-4444-b475-f86290ee5b36",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -980,
+        220
+      ],
+      "id": "275f7f2e-2f45-47f1-97b3-ce2901bd15ae",
+      "name": "Webhook",
+      "webhookId": "d8a36c09-92ca-4444-b475-f86290ee5b36"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "= {{ $json.content }}\n",
+        "options": {
+          "systemMessage": "=# Rol\nEres un asistente experto en planificación de viajes y automatización documental. Tienes acceso a herramientas externas para analizar texto, generar contenido turístico, buscar imágenes relevantes en la web y generar documentos con formato profesional.\n\n# Objetivo\nRecibirás un texto que fue previamente extraído de una imagen OCR. Este texto representa un itinerario de viaje, y contiene:\n\n- Fechas del viaje.\n- Lista de ciudades o destinos (columna “Nuitées”).\n- Hoteles o alojamientos (columna “Hôtels ou similaire”).\n\nTu tarea es:\n\n1. Analizar el texto y extraer la lista de ciudades únicas del itinerario. Ignora repeticiones.\n2. Para cada ciudad:\n   - Generar exactamente 3 recomendaciones turísticas breves y relevantes usando `llm`.\n   - Usar la herramienta `Tool:descargar` pasando como `input` el nombre exacto de la ciudad (por ejemplo, \"Tokyo\", \"Kyoto\"). Esta Esta herramienta devolverá una URL de imagen desde Pexels.\n   - Incluir esa URL como `\"imagen_url\"` en el JSON de salida.\n\n3. Construir un JSON como este:\n\n```json\n[\n  {\n    \"ciudad\": \"Tokyo\",\n    \"imagen_url\": \"https://source.unsplash.com/1600x900/?Tokyo\",\n    \"recomendaciones\": [\n      \"Visita al templo Senso-ji\",\n      \"Explora Akihabara\",\n      \"Sube al Tokyo Skytree\"\n    ]\n  },\n  {\n    \"ciudad\": \"Kyoto\",\n    \"imagen_url\": \"https://source.unsplash.com/1600x900/?Kyoto\",\n    \"recomendaciones\": [\n      \"Recorre el distrito Gion\",\n      \"Visita el templo Fushimi Inari\",\n      \"Pasea por el bosque de bambú de Arashiyama\"\n    ]\n  }\n]\nUsar Tool:Code Tool para transformar el JSON en contenido markdown estructurado. No omitas ninguna ciudad.\n\nInsertar ese contenido markdown en un documento de Google Docs utilizando Tool:Google Docs.\n\nExportar el documento a PDF usando Tool:convertir a pdf.\n\nSi es necesario, utiliza Tool:Think para razonar o validar decisiones antes de continuar.\n\nReglas para el uso de herramientas\nUsa `Tool:descargar` pasando como input el nombre de la ciudad (ej. \"Tokyo\").\n\nCuando recibas la respuesta JSON, toma el valor que se encuentra en:\n`photos[0].src.landscape` y úsalo como `imagen_url` en el JSON final.\n\n\nUsa Tool:Code Tool solo cuando ya hayas reunido toda la información (ciudades, recomendaciones, imágenes).\n\nCuando recibas el resultado de Tool:descargar, usa el campo `photos[0].src.landscape` como imagen_url en el JSON final.\n\nInserta el markdown completo en un solo documento.\n\nNo generes fragmentos parciales.\n\nSiempre espera a que todas las herramientas hayan respondido antes de continuar.\n\nValidación\nNo repitas ciudades.\n\nGenera exactamente 3 recomendaciones por ciudad.\n\nAsegúrate de que cada ciudad tenga una imagen válida obtenida con Tool:descargar.\n\nAcepta imágenes aunque su URL no termine en .jpg.\n\nEl contenido debe estar formateado correctamente para que pueda ser convertido a documento de Google Docs sin errores.\n\nOutput final\nDevuelve:\n\nEl contenido markdown generado (como texto plano).\n\nEl enlace al documento final (Google Docs o PDF).\n\nEntrada\nTexto plano extraído con OCR que representa un itinerario de viaje. Usa ese texto como única fuente de verdad."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -180,
+        120
+      ],
+      "id": "00f99630-45c1-48b0-a90e-5005716bec90",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c78a95a6-2aba-4af2-a547-fa18e81a6f95",
+              "name": "Formulario_v",
+              "value": "={{ $json.body }}",
+              "type": "string"
+            },
+            {
+              "id": "ea45db68-6e17-4545-802d-f91f6e529462",
+              "name": "telegram",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -760,
+        240
+      ],
+      "id": "f0f9b5c3-8c4c-49d0-9977-f76518c6d1ea",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -380,
+        480
+      ],
+      "id": "c2733dab-6a7b-485d-b5ad-496c2d06301e",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "E16ocRmI9hVuIhBK",
+          "name": "Edwing API n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1060,
+        600
+      ],
+      "id": "e10df333-bdb8-4243-89fc-7ce80839206a",
+      "name": "Telegram Trigger2",
+      "webhookId": "f2b3b4c2-f76a-4ed6-a9d6-a7dda20c98c0",
+      "credentials": {
+        "telegramApi": {
+          "id": "xgD1nwNESocBOcqH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        460
+      ],
+      "id": "333a5a2a-4114-4f62-9333-dbcbc8842643",
+      "name": "user_response",
+      "webhookId": "ea775075-6776-4a3b-abc3-d199974a943b",
+      "credentials": {
+        "telegramApi": {
+          "id": "xgD1nwNESocBOcqH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Utiliza esta herramieta para memjora tus acciones añadiendo una capa mas de razonamieto antes de ejecutar."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        460
+      ],
+      "id": "dea48624-34ea-40db-9f10-2d5081377b59",
+      "name": "Think1"
+    },
+    {
+      "parameters": {
+        "sendTo": "=macdo796@gmail.com",
+        "subject": "hola",
+        "emailType": "text",
+        "message": "={{ $json.documentId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        600,
+        220
+      ],
+      "id": "2430409d-bd9e-42b7-8e92-c2a10451f6e0",
+      "name": "Gmail1",
+      "webhookId": "243f155b-b5a2-4a24-b9ae-c9f5c8ec833b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hDleSmb4mxMQ5Sz3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -360,
+        740
+      ],
+      "id": "740e9883-c8bc-48a7-9564-671f0a80d2f7",
+      "name": "When chat message received",
+      "webhookId": "198b1b11-30b1-46ce-964d-a9c24ef28fe9"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        740
+      ],
+      "id": "8529aaf4-ada3-4cb2-99a9-a0114bc15b42",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -140,
+        840
+      ],
+      "id": "dcc91ce3-c1d6-415b-90eb-535cab5370e0",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "E16ocRmI9hVuIhBK",
+          "name": "Edwing API n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let ciudades = $json;\n\nif (typeof ciudades === 'string') {\n  try {\n    ciudades = JSON.parse(ciudades);\n  } catch (e) {\n    return 'Error al parsear JSON';\n  }\n}\n\nif (!Array.isArray(ciudades)) {\n  ciudades = [ciudades];\n}\n\nlet contenido = `## Itinerario de Viaje\\n\\n`;\n\nciudades.forEach(({ ciudad, imagen_url, recomendaciones }) => {\n  contenido += `### ${ciudad}\\n`;\n  if (imagen_url) {\n    contenido += `![${ciudad}](${imagen_url})\\n\\n`;\n  }\n  contenido += `**Recomendaciones:**\\n`;\n  (recomendaciones || []).forEach((reco, i) => {\n    contenido += `${i + 1}. ${reco}\\n`;\n  });\n  contenido += `\\n---\\n`;\n});\n\nreturn contenido;\n\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        480
+      ],
+      "id": "aecab7f2-82a4-43aa-be78-c50c29339c9c",
+      "name": "Code Tool"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -420,
+        200
+      ],
+      "id": "7ab8e16e-f18b-4d33-8ec4-c72b24418f88",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "E16ocRmI9hVuIhBK",
+          "name": "Edwing API n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Paso 1: Parsear el string contenido en Formulario_v\nlet data;\ntry {\n  data = JSON.parse($json.Formulario_v);\n} catch (e) {\n  return [{ json: { error: 'No se pudo parsear Formulario_v' } }];\n}\n\n// Paso 2: Extraer campo \"foto\"\nconst base64Raw = data.foto || '';\n\nif (!base64Raw.startsWith('data:image')) {\n  return [{ json: { error: 'No se encontró imagen base64 válida en Formulario_v.foto' } }];\n}\n\n// Paso 3: Limpiar base64 (quitar el encabezado \"data:image/png;base64,\")\nconst base64 = base64Raw.split(',')[1];\n\n// Paso 4: Devolver como binario válido\nreturn [\n  {\n    json: {},\n    binary: {\n      data: {\n        data: base64,\n        mimeType: 'image/png',\n        fileName: 'imagen.png'\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        240
+      ],
+      "id": "5f59f2e3-6988-45f5-a3da-b4d70f9e15c6",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "let ciudades = $json;\n\nif (typeof ciudades === 'string') {\n  try {\n    ciudades = JSON.parse(ciudades);\n  } catch (e) {\n    return [{ json: { output: 'Error al parsear JSON' } }];\n  }\n}\n\nif (!Array.isArray(ciudades)) {\n  ciudades = [ciudades];\n}\n\nlet contenido = `## Itinerario de Viaje\\n\\n`;\n\nciudades.forEach(({ ciudad, imagen_url, recomendaciones }) => {\n  contenido += `### ${ciudad}\\n`;\n  if (imagen_url) {\n    contenido += `![${ciudad}](${imagen_url})\\n\\n`;\n  }\n  contenido += `**Recomendaciones:**\\n`;\n  (recomendaciones || []).forEach((reco, i) => {\n    contenido += `${i + 1}. ${reco}\\n`;\n  });\n  contenido += `\\n---\\n`;\n});\n\nreturn [{ json: { output: contenido } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -80
+      ],
+      "id": "5454701b-63fd-4149-84e1-9af9957eaf58",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "https://docs.google.com/document/d/1BVdMdFn8dKsIcBECWzT2eKnVD8VrJoS1gKZXGGmbiww/edit?usp=sharing",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $json.output }}\n\n\n"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        200,
+        60
+      ],
+      "id": "fe9292f0-af71-4cc2-8b53-1346638d9ab3",
+      "name": "Google Docs1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "S7GgNr3etJ8W09yX",
+          "name": "Google Docs account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.pexels.com/v1/search?query=tokyo&orientation=landscape&per_page=1\n\n\n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "UpYbFpGR59DkRNaK1gLROhmhvmh9qwEeiEgNvRwOckOF19MVBwkO0Sbe"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        20,
+        480
+      ],
+      "id": "5c565c9a-cc04-492b-9c51-364c48fcc7c3",
+      "name": "descargar",
+      "retryOnFail": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "user_response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Docs1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger2": {
+      "main": [
+        []
+      ]
+    },
+    "Think1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        []
+      ]
+    },
+    "descargar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Docs1": {
+      "main": [
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a2c2a5e7-57d4-4585-87a4-a6701589ae6e",
+  "meta": {
+    "instanceId": "c9140b35e4c16c7a127e9668bfc101ec9197033014c58505d9b72a53e32f88ca"
+  },
+  "id": "IlBMx6hN15avw4ud",
+  "tags": []
+}
